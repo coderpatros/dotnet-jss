@@ -1,0 +1,37 @@
+<div class="form-group">
+    <label>@Label</label>
+    <textarea @bind="Value" @bind:after="OnValueChanged" placeholder="@Placeholder"></textarea>
+    <div class="actions">
+        <InputFile OnChange="HandleFileUpload" style="display:none" id="@_inputId" />
+        <button class="secondary" type="button" @onclick="TriggerFileUpload">Upload File</button>
+    </div>
+</div>
+
+@code {
+    private string _inputId = $"file-{Guid.NewGuid():N}";
+
+    [Parameter] public string Label { get; set; } = "JSON";
+    [Parameter] public string Placeholder { get; set; } = "Paste JSON here...";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private async Task OnValueChanged()
+    {
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task TriggerFileUpload()
+    {
+        await JS.InvokeVoidAsync("document.getElementById", _inputId);
+        await JS.InvokeVoidAsync("eval", $"document.getElementById('{_inputId}').click()");
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        using var reader = new StreamReader(e.File.OpenReadStream());
+        Value = await reader.ReadToEndAsync();
+        await ValueChanged.InvokeAsync(Value);
+    }
+}

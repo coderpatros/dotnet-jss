@@ -1,0 +1,18 @@
+@if (IsVisible)
+{
+    <div class="@CssClass">
+        <strong>@(IsValid ? "Valid" : "Invalid")</strong>
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <span>: @Message</span>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsVisible { get; set; }
+    [Parameter] public bool IsValid { get; set; }
+    [Parameter] public string? Message { get; set; }
+
+    private string CssClass => IsValid ? "result-valid" : "result-invalid";
+}

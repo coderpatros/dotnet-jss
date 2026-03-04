@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CoderPatros.Jss/CoderPatros.Jss.csproj" />
+    <Project Path="src/CoderPatros.Jss.Cli/CoderPatros.Jss.Cli.csproj" />
+    <Project Path="src/CoderPatros.Jss.Api/CoderPatros.Jss.Api.csproj" />
+    <Project Path="src/CoderPatros.Jss.Web/CoderPatros.Jss.Web.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CoderPatros.Jss.Tests/CoderPatros.Jss.Tests.csproj" />
+    <Project Path="tests/CoderPatros.Jss.Cli.Tests/CoderPatros.Jss.Cli.Tests.csproj" />
+    <Project Path="tests/CoderPatros.Jss.Api.Tests/CoderPatros.Jss.Api.Tests.csproj" />
+    <Project Path="tests/CoderPatros.Jss.Web.Tests/CoderPatros.Jss.Web.Tests.csproj" />
+  </Folder>
+</Solution>

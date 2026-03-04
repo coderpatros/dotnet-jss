@@ -1,0 +1,31 @@
+@page "/"
+
+<PageTitle>JSS Web Tool</PageTitle>
+
+<h1>JSON Signature Scheme (JSS) Web Tool</h1>
+
+<div class="privacy-note">
+    All cryptographic operations run entirely in your browser using WebAssembly.
+    Your keys and documents never leave your machine.
+</div>
+
+<p>
+    This tool provides a browser-based interface for working with JSON Signature Scheme (JSS) signatures
+    as defined in ITU-T X.590. JSS uses JSON Canonicalization Scheme (JCS/RFC 8785) and a two-step
+    hash-then-sign process to digitally sign JSON objects while keeping them in JSON format.
+</p>
+
+<h2>Features</h2>
+<ul>
+    <li><a href="generate-key">Generate Key</a> &mdash; Create cryptographic key pairs for signing</li>
+    <li><a href="sign">Sign</a> &mdash; Sign a JSON document with a private key</li>
+    <li><a href="verify">Verify</a> &mdash; Verify a signed JSON document</li>
+</ul>
+
+<h2>Supported Algorithms</h2>
+<ul>
+    <li><strong>ECDSA:</strong> ES256, ES384, ES512</li>
+    <li><strong>RSA PKCS#1:</strong> RS256, RS384, RS512</li>
+    <li><strong>RSA-PSS:</strong> PS256, PS384, PS512</li>
+    <li><strong>EdDSA:</strong> Ed25519, Ed448</li>
+</ul>

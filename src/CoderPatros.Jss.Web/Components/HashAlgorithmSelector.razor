@@ -1,0 +1,19 @@
+<div class="form-group">
+    <label>@Label</label>
+    <select @bind="SelectedHashAlgorithm" @bind:after="OnSelectionChanged">
+        <option value="sha-256">SHA-256</option>
+        <option value="sha-384">SHA-384</option>
+        <option value="sha-512">SHA-512</option>
+    </select>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "Hash Algorithm";
+    [Parameter] public string SelectedHashAlgorithm { get; set; } = "sha-256";
+    [Parameter] public EventCallback<string> SelectedHashAlgorithmChanged { get; set; }
+
+    private async Task OnSelectionChanged()
+    {
+        await SelectedHashAlgorithmChanged.InvokeAsync(SelectedHashAlgorithm);
+    }
+}

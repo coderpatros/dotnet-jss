@@ -1,0 +1,93 @@
+@page "/verify"
+@using System.Text.Json.Nodes
+@using CoderPatros.Jss.Keys
+@using CoderPatros.Jss.Models
+
+<PageTitle>Verify - JSS Web Tool</PageTitle>
+
+<h1>Verify a Signed JSON Document</h1>
+
+<div class="privacy-note">
+    Verification runs entirely in your browser. Your key and document never leave your machine.
+</div>
+
+<JsonEditor @bind-Value="_documentJson" Label="Signed JSON Document" Placeholder="Paste signed JSON document here..." />
+
+<JsonEditor @bind-Value="_publicKeyPem" Label="Public Key (PEM)" Placeholder="Paste PEM public key here (optional if using embedded key)..." />
+
+<div class="form-group">
+    <label>
+        <input type="checkbox" @bind="_allowEmbeddedKey" /> Allow embedded public key
+    </label>
+</div>
+
+<div class="actions">
+    <button class="primary" @onclick="VerifyDocument" disabled="@(!CanVerify)">Verify</button>
+</div>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="error-message">@_errorMessage</div>
+}
+
+<ResultDisplay IsVisible="_showResult" IsValid="_isValid" Message="@_resultMessage" />
+
+@code {
+    private string _documentJson = "";
+    private string _publicKeyPem = "";
+    private bool _allowEmbeddedKey;
+    private string? _errorMessage;
+    private bool _showResult;
+    private bool _isValid;
+    private string? _resultMessage;
+
+    private bool CanVerify => !string.IsNullOrEmpty(_documentJson) &&
+                             (!string.IsNullOrEmpty(_publicKeyPem) || _allowEmbeddedKey);
+
+    private void VerifyDocument()
+    {
+        _errorMessage = null;
+        _showResult = false;
+
+        try
+        {
+            var service = new JssSignatureService();
+
+            VerificationKey? verificationKey = null;
+            if (!string.IsNullOrWhiteSpace(_publicKeyPem))
+            {
+                var doc = JsonNode.Parse(_documentJson)?.AsObject();
+                // Determine algorithm from the document signatures
+                string algorithm = "ES256";
+                if (doc?["signatures"] is JsonArray sigArr && sigArr.Count > 0)
+                {
+                    var alg = sigArr[sigArr.Count - 1]!.AsObject()["algorithm"]?.GetValue<string>();
+                    if (alg is not null) algorithm = alg;
+                }
+
+                verificationKey = PemKeyHelper.ImportPublicKeyPem(_publicKeyPem, algorithm);
+            }
+
+            using (verificationKey)
+            {
+                var options = new VerificationOptions
+                {
+                    Key = verificationKey,
+                    AllowEmbeddedPublicKey = _allowEmbeddedKey
+                };
+
+                var document = JsonNode.Parse(_documentJson)?.AsObject()
+                    ?? throw new InvalidOperationException("Input is not a valid JSON object.");
+
+                var result = service.Verify(document, options);
+                _showResult = true;
+                _isValid = result.IsValid;
+                _resultMessage = result.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>CoderPatros.Jss</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>CoderPatros.Jss</PackageId>
+    <Description>JSON Signature Scheme (ITU-T X.590) implementation</Description>
+    <Authors>Patrick Dwyer</Authors>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/coderpatros/dotnet-jss</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/coderpatros/dotnet-jss.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>jss;json;signature;signing;jcs;rfc8785;cryptography;x590</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="CoderPatros.Jss.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BouncyCastle.Cryptography" Version="2.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

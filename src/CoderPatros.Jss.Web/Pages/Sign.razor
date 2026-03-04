@@ -1,0 +1,92 @@
+@page "/sign"
+@using System.Text.Json
+@using System.Text.Json.Nodes
+@using CoderPatros.Jss.Keys
+@using CoderPatros.Jss.Models
+
+<PageTitle>Sign - JSS Web Tool</PageTitle>
+
+<h1>Sign a JSON Document</h1>
+
+<div class="privacy-note">
+    Signing runs entirely in your browser. Your key and document never leave your machine.
+</div>
+
+<AlgorithmSelector @bind-SelectedAlgorithm="_algorithm" Label="Signing Algorithm" />
+<HashAlgorithmSelector @bind-SelectedHashAlgorithm="_hashAlgorithm" Label="Hash Algorithm" />
+
+<JsonEditor @bind-Value="_privateKeyPem" Label="Private Key (PEM)" Placeholder="Paste PEM private key here..." />
+
+<div class="form-group">
+    <label>
+        <input type="checkbox" @bind="_embedPublicKey" /> Embed public key in signature
+    </label>
+</div>
+
+<JsonEditor @bind-Value="_documentJson" Label="JSON Document" Placeholder="Paste JSON document to sign..." />
+
+<div class="actions">
+    <button class="primary" @onclick="SignDocument" disabled="@(!CanSign)">Sign</button>
+</div>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="error-message">@_errorMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(_signedOutput))
+{
+    <div class="form-group">
+        <label>Signed Document</label>
+        <div class="key-display">@_signedOutput</div>
+    </div>
+}
+
+@code {
+    private static readonly JsonSerializerOptions IndentedOptions = new() { WriteIndented = true };
+
+    private string _algorithm = "";
+    private string _hashAlgorithm = "sha-256";
+    private string _privateKeyPem = "";
+    private string _documentJson = "";
+    private bool _embedPublicKey;
+    private string? _errorMessage;
+    private string _signedOutput = "";
+
+    private bool CanSign => !string.IsNullOrEmpty(_algorithm) &&
+                           !string.IsNullOrEmpty(_hashAlgorithm) &&
+                           !string.IsNullOrEmpty(_privateKeyPem) &&
+                           !string.IsNullOrEmpty(_documentJson);
+
+    private void SignDocument()
+    {
+        _errorMessage = null;
+        _signedOutput = "";
+
+        try
+        {
+            var service = new JssSignatureService();
+            using var signingKey = PemKeyHelper.ImportPrivateKeyPem(_privateKeyPem, _algorithm);
+
+            // ITU-T X.590 clause 6.2.1: at least one key identification property MUST be populated.
+            var publicKeyPemBody = PemKeyHelper.ExportPublicKeyPemBody(signingKey, _algorithm);
+            var options = new SignatureOptions
+            {
+                Algorithm = _algorithm,
+                HashAlgorithm = _hashAlgorithm,
+                Key = signingKey,
+                PublicKey = publicKeyPemBody
+            };
+
+            var doc = JsonNode.Parse(_documentJson)?.AsObject()
+                ?? throw new InvalidOperationException("Input is not a valid JSON object.");
+
+            var signed = service.Sign(doc, options);
+            _signedOutput = signed.ToJsonString(IndentedOptions);
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

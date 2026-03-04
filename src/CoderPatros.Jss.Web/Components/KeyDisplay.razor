@@ -1,0 +1,32 @@
+@if (!string.IsNullOrEmpty(Value))
+{
+    <div class="form-group">
+        <label>@Label</label>
+        <div class="key-display">@Value</div>
+        <div class="actions">
+            <button class="secondary" type="button" @onclick="CopyToClipboard">Copy</button>
+            <button class="secondary" type="button" @onclick="Download">Download</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public string Label { get; set; } = "Key";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string FileName { get; set; } = "key.pem";
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
+
+    private async Task CopyToClipboard()
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", Value);
+    }
+
+    private async Task Download()
+    {
+        var bytes = System.Text.Encoding.UTF8.GetBytes(Value);
+        var base64 = Convert.ToBase64String(bytes);
+        await JS.InvokeVoidAsync("eval",
+            $"(() => {{ var a = document.createElement('a'); a.href = 'data:application/x-pem-file;base64,{base64}'; a.download = '{FileName}'; a.click(); }})()");
+    }
+}

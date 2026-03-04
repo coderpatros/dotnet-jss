@@ -1,0 +1,50 @@
+@page "/generate-key"
+@using CoderPatros.Jss.Keys
+
+<PageTitle>Generate Key - JSS Web Tool</PageTitle>
+
+<h1>Generate Key</h1>
+
+<div class="privacy-note">
+    Keys are generated entirely in your browser. They never leave your machine.
+</div>
+
+<AlgorithmSelector @bind-SelectedAlgorithm="_algorithm" Label="Algorithm" />
+
+<div class="actions">
+    <button class="primary" @onclick="Generate" disabled="@string.IsNullOrEmpty(_algorithm)">Generate Key</button>
+</div>
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="error-message">@_errorMessage</div>
+}
+
+<KeyDisplay Label="Private Key PEM (keep secret)" Value="@_privateKeyPem" FileName="@($"{_algorithm}-private.pem")" />
+<KeyDisplay Label="Public Key PEM (safe to share)" Value="@_publicKeyPem" FileName="@($"{_algorithm}-public.pem")" />
+
+@code {
+    private string _algorithm = "";
+    private string _privateKeyPem = "";
+    private string _publicKeyPem = "";
+    private string? _errorMessage;
+
+    private void Generate()
+    {
+        _errorMessage = null;
+        _privateKeyPem = "";
+        _publicKeyPem = "";
+
+        try
+        {
+            var (signingKey, _, publicKeyPemBody) = PemKeyHelper.GenerateKeyPair(_algorithm);
+            _privateKeyPem = PemKeyHelper.ExportPrivateKeyPem(signingKey, _algorithm);
+            _publicKeyPem = PemKeyHelper.ExportPublicKeyPem(publicKeyPemBody);
+            signingKey.Dispose();
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}

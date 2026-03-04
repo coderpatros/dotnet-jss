@@ -1,0 +1,36 @@
+<div class="form-group">
+    <label>@Label</label>
+    <select @bind="SelectedAlgorithm" @bind:after="OnSelectionChanged">
+        <option value="">-- Select Algorithm --</option>
+        <optgroup label="ECDSA">
+            <option value="ES256">ES256 (P-256 + SHA-256)</option>
+            <option value="ES384">ES384 (P-384 + SHA-384)</option>
+            <option value="ES512">ES512 (P-521 + SHA-512)</option>
+        </optgroup>
+        <optgroup label="RSA PKCS#1">
+            <option value="RS256">RS256 (RSA + SHA-256)</option>
+            <option value="RS384">RS384 (RSA + SHA-384)</option>
+            <option value="RS512">RS512 (RSA + SHA-512)</option>
+        </optgroup>
+        <optgroup label="RSA-PSS">
+            <option value="PS256">PS256 (RSA-PSS + SHA-256)</option>
+            <option value="PS384">PS384 (RSA-PSS + SHA-384)</option>
+            <option value="PS512">PS512 (RSA-PSS + SHA-512)</option>
+        </optgroup>
+        <optgroup label="EdDSA">
+            <option value="Ed25519">Ed25519</option>
+            <option value="Ed448">Ed448</option>
+        </optgroup>
+    </select>
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "Algorithm";
+    [Parameter] public string SelectedAlgorithm { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedAlgorithmChanged { get; set; }
+
+    private async Task OnSelectionChanged()
+    {
+        await SelectedAlgorithmChanged.InvokeAsync(SelectedAlgorithm);
+    }
+}
