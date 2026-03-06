@@ -1,3 +1,4 @@
+using CoderPatros.Jss;
 using CoderPatros.Jss.Api.Models;
 using CoderPatros.Jss.Keys;
 
@@ -28,7 +29,7 @@ public static class KeyEndpoints
 
         try
         {
-            var (signingKey, _, publicKeyPemBody) = PemKeyHelper.GenerateKeyPair(request.Algorithm);
+            var (signingKey, _, publicKeyPemBody) = PemKeyHelper.GenerateKeyPair(request.Algorithm, request.RsaKeySize ?? 2048);
             var privateKeyPem = PemKeyHelper.ExportPrivateKeyPem(signingKey, request.Algorithm);
             var publicKeyPem = PemKeyHelper.ExportPublicKeyPem(publicKeyPemBody);
             signingKey.Dispose();
@@ -40,9 +41,13 @@ public static class KeyEndpoints
                 PublicKeyPemBody = publicKeyPemBody
             });
         }
-        catch (Exception ex)
+        catch (JssException ex)
         {
             return Results.BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest(new ErrorResponse { Error = "An unexpected error occurred." });
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using CoderPatros.Jss;
 using CoderPatros.Jss.Api.Models;
 using CoderPatros.Jss.Keys;
 using CoderPatros.Jss.Models;
@@ -26,9 +27,13 @@ public static class VerifyEndpoints
                 return Results.Ok(new VerifyResponse { IsValid = result.IsValid, Error = result.Error });
             }
         }
-        catch (Exception ex)
+        catch (JssException ex)
         {
             return Results.BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest(new ErrorResponse { Error = "An unexpected error occurred." });
         }
     }
 
@@ -45,9 +50,13 @@ public static class VerifyEndpoints
                 return Results.Ok(new VerifyResponse { IsValid = result.IsValid, Error = result.Error });
             }
         }
-        catch (Exception ex)
+        catch (JssException ex)
         {
             return Results.BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest(new ErrorResponse { Error = "An unexpected error occurred." });
         }
     }
 
@@ -60,7 +69,8 @@ public static class VerifyEndpoints
             var algorithm = request.Algorithm;
             if (algorithm is null && request.Document["signatures"] is JsonArray sigArr && sigArr.Count > 0)
                 algorithm = sigArr[sigArr.Count - 1]!.AsObject()["algorithm"]?.GetValue<string>();
-            algorithm ??= "ES256";
+            if (algorithm is null)
+                throw new JssException("Algorithm is required when providing a public key and the document does not specify one.");
 
             verificationKey = PemKeyHelper.ImportPublicKeyPem(request.PublicKeyPem, algorithm);
         }
