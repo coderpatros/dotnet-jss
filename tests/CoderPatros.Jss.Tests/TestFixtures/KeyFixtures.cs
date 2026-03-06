@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using CoderPatros.Jss.Keys;
 using CoderPatros.Jss.Models;
 using Org.BouncyCastle.Crypto.Generators;
@@ -10,12 +9,28 @@ namespace CoderPatros.Jss.Tests.TestFixtures;
 internal static class KeyFixtures
 {
     // ECDSA keys
-    public static ECDsa CreateEcdsaP256() => ECDsa.Create(ECCurve.NamedCurves.nistP256);
-    public static ECDsa CreateEcdsaP384() => ECDsa.Create(ECCurve.NamedCurves.nistP384);
-    public static ECDsa CreateEcdsaP521() => ECDsa.Create(ECCurve.NamedCurves.nistP521);
+    public static (ECPrivateKeyParameters Private, ECPublicKeyParameters Public) CreateEcdsaKeyPair(string curveName)
+    {
+        var ecParams = Org.BouncyCastle.Asn1.X9.ECNamedCurveTable.GetByName(curveName);
+        var domainParams = new ECDomainParameters(ecParams.Curve, ecParams.G, ecParams.N, ecParams.H, ecParams.GetSeed());
+        var gen = new ECKeyPairGenerator();
+        gen.Init(new ECKeyGenerationParameters(domainParams, new SecureRandom()));
+        var kp = gen.GenerateKeyPair();
+        return ((ECPrivateKeyParameters)kp.Private, (ECPublicKeyParameters)kp.Public);
+    }
 
     // RSA keys
-    public static RSA CreateRsa2048() => RSA.Create(2048);
+    public static (RsaPrivateCrtKeyParameters Private, RsaKeyParameters Public) CreateRsa2048()
+    {
+        var gen = new RsaKeyPairGenerator();
+        gen.Init(new RsaKeyGenerationParameters(
+            Org.BouncyCastle.Math.BigInteger.ValueOf(0x10001),
+            new SecureRandom(),
+            2048,
+            256));
+        var kp = gen.GenerateKeyPair();
+        return ((RsaPrivateCrtKeyParameters)kp.Private, (RsaKeyParameters)kp.Public);
+    }
 
     // EdDSA Ed25519
     public static (byte[] PrivateKey, byte[] PublicKey) CreateEd25519KeyPair()
@@ -42,32 +57,29 @@ internal static class KeyFixtures
     // Helper: create signing/verification key pairs with PEM body
     public static (SigningKey Signing, VerificationKey Verification, string PublicKeyPemBody) CreateEcdsaKeySet(string algorithm)
     {
-        var ecdsa = algorithm switch
+        var curveName = algorithm switch
         {
-            JssAlgorithm.ES256 => CreateEcdsaP256(),
-            JssAlgorithm.ES384 => CreateEcdsaP384(),
-            JssAlgorithm.ES512 => CreateEcdsaP521(),
+            JssAlgorithm.ES256 => "P-256",
+            JssAlgorithm.ES384 => "P-384",
+            JssAlgorithm.ES512 => "P-521",
             _ => throw new ArgumentException($"Unsupported: {algorithm}")
         };
-        var pemBody = PemKeyHelper.ExportPublicKeyPemBody(ecdsa);
-        var ecdsa2 = ECDsa.Create();
-        ecdsa2.ImportSubjectPublicKeyInfo(ecdsa.ExportSubjectPublicKeyInfo(), out _);
+        var (privateKey, publicKey) = CreateEcdsaKeyPair(curveName);
+        var pemBody = PemKeyHelper.ExportPublicKeyPemBody(publicKey);
         return (
-            SigningKey.FromECDsa(ecdsa),
-            VerificationKey.FromECDsa(ecdsa2),
+            SigningKey.FromECDsa(privateKey),
+            VerificationKey.FromECDsa(publicKey),
             pemBody
         );
     }
 
     public static (SigningKey Signing, VerificationKey Verification, string PublicKeyPemBody) CreateRsaKeySet()
     {
-        var rsa = CreateRsa2048();
-        var pemBody = PemKeyHelper.ExportPublicKeyPemBody(rsa);
-        var rsa2 = RSA.Create();
-        rsa2.ImportSubjectPublicKeyInfo(rsa.ExportSubjectPublicKeyInfo(), out _);
+        var (privateKey, publicKey) = CreateRsa2048();
+        var pemBody = PemKeyHelper.ExportPublicKeyPemBody(publicKey);
         return (
-            SigningKey.FromRsa(rsa),
-            VerificationKey.FromRsa(rsa2),
+            SigningKey.FromRsa(privateKey),
+            VerificationKey.FromRsa(publicKey),
             pemBody
         );
     }
@@ -80,7 +92,13 @@ internal static class KeyFixtures
             "Ed448" => CreateEd448KeyPair(),
             _ => throw new ArgumentException($"Unsupported: {curve}")
         };
-        var pemBody = PemKeyHelper.ExportEdDsaPublicKeyPemBody(publicKey, curve);
+        var bcPubKey = curve switch
+        {
+            "Ed25519" => (Org.BouncyCastle.Crypto.AsymmetricKeyParameter)new Ed25519PublicKeyParameters(publicKey, 0),
+            "Ed448" => new Ed448PublicKeyParameters(publicKey, 0),
+            _ => throw new ArgumentException($"Unsupported: {curve}")
+        };
+        var pemBody = PemKeyHelper.ExportPublicKeyPemBody(bcPubKey);
         return (
             SigningKey.FromEdDsa(privateKey, curve),
             VerificationKey.FromEdDsa(publicKey, curve),

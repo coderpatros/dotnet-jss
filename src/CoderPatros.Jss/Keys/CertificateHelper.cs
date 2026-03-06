@@ -32,25 +32,25 @@ public static class CertificateHelper
             throw new JssException("Certificate chain is empty.");
 
         var cert = ParseCertificate(certChain[0]);
+        var bcKey = PublicKeyFactory.CreateKey(cert.PublicKey.ExportSubjectPublicKeyInfo());
 
         if (algorithm.StartsWith("ES", StringComparison.Ordinal))
         {
-            var ecdsa = cert.GetECDsaPublicKey()
-                ?? throw new JssException("Certificate does not contain an ECDSA public key.");
-            return VerificationKey.FromECDsa(ecdsa);
+            if (bcKey is not ECPublicKeyParameters ecKey)
+                throw new JssException("Certificate does not contain an ECDSA public key.");
+            return VerificationKey.FromECDsa(ecKey);
         }
 
         if (algorithm.StartsWith("RS", StringComparison.Ordinal) ||
             algorithm.StartsWith("PS", StringComparison.Ordinal))
         {
-            var rsa = cert.GetRSAPublicKey()
-                ?? throw new JssException("Certificate does not contain an RSA public key.");
-            return VerificationKey.FromRsa(rsa);
+            if (bcKey is not RsaKeyParameters rsaKey)
+                throw new JssException("Certificate does not contain an RSA public key.");
+            return VerificationKey.FromRsa(rsaKey);
         }
 
         if (algorithm is "Ed25519" or "Ed448")
         {
-            var bcKey = PublicKeyFactory.CreateKey(cert.PublicKey.ExportSubjectPublicKeyInfo());
             return bcKey switch
             {
                 Ed25519PublicKeyParameters ed25519 => VerificationKey.FromEdDsa(ed25519.GetEncoded(), "Ed25519"),
