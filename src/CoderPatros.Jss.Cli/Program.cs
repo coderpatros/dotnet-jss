@@ -416,10 +416,36 @@ countersignCommand.SetAction(parseResult =>
 
 // --- Root command ---
 
+const string banner = """
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                                                                              │
+│      ██╗██████╗██████╗    █████╗██╗    ██╗   ████████╗ █████╗  █████╗ ██╗    │
+│      ██║██╔═══╝██╔═══╝   ██╔═══╝██║    ██║   ╚══██╔══╝██╔══██╗██╔══██╗██║    │
+│      ██║██████╗██████╗   ██║    ██║    ██║      ██║   ██║  ██║██║  ██║██║    │
+│ ██   ██║╚═══██║╚═══██║   ██║    ██║    ██║      ██║   ██║  ██║██║  ██║██║    │
+│ ╚█████╔╝██████║██████║   ╚█████╗██████╗██║      ██║   ╚█████╔╝╚█████╔╝██████╗│
+│  ╚════╝╚══════╝╚═════╝    ╚════╝╚═════╝╚═╝      ╚═╝    ╚════╝  ╚════╝ ╚═════╝│
+│                                                                              │
+│               JSON Signature Scheme  -  ITU-T X.590 (10/2023)                │
+│                                                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                         -=[ GREETiNGS GO OUT TO ]=-                          │
+│                                                                              │
+│   cyberphone  ...  IETF  ...  ITU-T  ...  ECMA  ...  OWASP  ...  CycloneDX   │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+""";
+
 var rootCommand = new RootCommand("JSS CLI - JSON Signature Scheme tool (ITU-T X.590)");
 rootCommand.Subcommands.Add(generateKeyCommand);
 rootCommand.Subcommands.Add(signCommand);
 rootCommand.Subcommands.Add(verifyCommand);
 rootCommand.Subcommands.Add(countersignCommand);
 
-return rootCommand.Parse(args).Invoke();
+if (args.Length == 0 || (args.Length == 1 && args[0] is "--help" or "-?" or "-h"))
+    Console.WriteLine(banner);
+
+return rootCommand.Parse(args.Length == 0 ? ["--help"] : args).Invoke();
