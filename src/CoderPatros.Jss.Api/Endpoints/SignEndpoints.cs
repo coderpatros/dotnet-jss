@@ -1,3 +1,4 @@
+using CoderPatros.Jss;
 using CoderPatros.Jss.Api.Models;
 using CoderPatros.Jss.Keys;
 using CoderPatros.Jss.Models;
@@ -34,9 +35,13 @@ public static class SignEndpoints
             var signed = service.Sign(request.Document, options);
             return Results.Ok(new SignResponse { Document = signed });
         }
-        catch (Exception ex)
+        catch (JssException ex)
         {
             return Results.BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest(new ErrorResponse { Error = "An unexpected error occurred." });
         }
     }
 
@@ -65,9 +70,13 @@ public static class SignEndpoints
             var result = service.Countersign(request.Document, options);
             return Results.Ok(new SignResponse { Document = result });
         }
-        catch (Exception ex)
+        catch (JssException ex)
         {
             return Results.BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+        catch (Exception)
+        {
+            return Results.BadRequest(new ErrorResponse { Error = "An unexpected error occurred." });
         }
     }
 }

@@ -27,7 +27,14 @@ internal static class PemKeyFileHelper
         }
         else
         {
-            File.WriteAllText(filePath, content);
+            // Windows: FileStream with CreateNew prevents overwriting.
+            // Note: Windows does not support UnixCreateMode; file inherits directory ACLs.
+            // For stronger protection, configure directory-level ACLs to restrict access.
+            if (overwrite && File.Exists(filePath))
+                File.Delete(filePath);
+            using var stream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write);
+            using var writer = new StreamWriter(stream);
+            writer.Write(content);
         }
     }
 }

@@ -95,7 +95,7 @@ public static class PemKeyHelper
     /// <summary>
     /// Generate a key pair for the given algorithm and return (SigningKey, PEM body of public key).
     /// </summary>
-    public static (SigningKey Signing, VerificationKey Verification, string PublicKeyPemBody) GenerateKeyPair(string algorithm)
+    public static (SigningKey Signing, VerificationKey Verification, string PublicKeyPemBody) GenerateKeyPair(string algorithm, int rsaKeySize = 2048)
     {
         if (algorithm.StartsWith("ES", StringComparison.Ordinal))
         {
@@ -117,7 +117,9 @@ public static class PemKeyHelper
         if (algorithm.StartsWith("RS", StringComparison.Ordinal) ||
             algorithm.StartsWith("PS", StringComparison.Ordinal))
         {
-            var rsa = RSA.Create(2048);
+            if (rsaKeySize < 2048)
+                throw new JssException($"RSA key size {rsaKeySize} bits is below the minimum of 2048 bits.");
+            var rsa = RSA.Create(rsaKeySize);
             var pemBody = ExportPublicKeyPemBody(rsa);
             var rsa2 = RSA.Create();
             rsa2.ImportSubjectPublicKeyInfo(rsa.ExportSubjectPublicKeyInfo(), out _);

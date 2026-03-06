@@ -36,10 +36,17 @@ var genForceOption = new Option<bool>("--force", "-f")
     Description = "Overwrite existing key files"
 };
 
+var genRsaKeySizeOption = new Option<int>("--rsa-key-size")
+{
+    Description = "RSA key size in bits (default: 2048, minimum: 2048)",
+    DefaultValueFactory = _ => 2048
+};
+
 var generateKeyCommand = new Command("generate-key", "Generate a cryptographic key pair");
 generateKeyCommand.Options.Add(genAlgorithmOption);
 generateKeyCommand.Options.Add(genOutputOption);
 generateKeyCommand.Options.Add(genForceOption);
+generateKeyCommand.Options.Add(genRsaKeySizeOption);
 
 generateKeyCommand.SetAction(parseResult =>
 {
@@ -47,6 +54,7 @@ generateKeyCommand.SetAction(parseResult =>
     var outputDir = parseResult.GetValue(genOutputOption)
         ?? new DirectoryInfo(Directory.GetCurrentDirectory());
     var force = parseResult.GetValue(genForceOption);
+    var rsaKeySize = parseResult.GetValue(genRsaKeySizeOption);
 
     if (!validAlgorithms.Contains(algorithm))
     {
@@ -70,7 +78,7 @@ generateKeyCommand.SetAction(parseResult =>
         return 1;
     }
 
-    var (signingKey, _, publicKeyPemBody) = PemKeyHelper.GenerateKeyPair(algorithm);
+    var (signingKey, _, publicKeyPemBody) = PemKeyHelper.GenerateKeyPair(algorithm, rsaKeySize);
     var privatePem = PemKeyHelper.ExportPrivateKeyPem(signingKey, algorithm);
     var publicPem = PemKeyHelper.ExportPublicKeyPem(publicKeyPemBody);
 
