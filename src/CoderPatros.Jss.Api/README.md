@@ -14,6 +14,23 @@ dotnet run --project src/CoderPatros.Jss.Api
 
 The API starts on `http://localhost:5000` by default. Browse to `http://localhost:5000/swagger` for the interactive Swagger UI.
 
+### With Docker
+
+Build and run using the provided script:
+
+```sh
+./src/CoderPatros.Jss.Api/docker-run.sh
+```
+
+This builds the Docker image and runs the API on `http://localhost:8080`. Browse to `http://localhost:8080/swagger` for the interactive Swagger UI.
+
+Or build and run manually from the repository root:
+
+```sh
+docker build -f src/CoderPatros.Jss.Api/Dockerfile -t coderpatros-jss-api .
+docker run --rm -p 8080:8080 coderpatros-jss-api
+```
+
 ## Endpoints
 
 ### POST /api/keys/generate

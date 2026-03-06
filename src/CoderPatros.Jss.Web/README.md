@@ -14,6 +14,23 @@ Requires .NET 8.0 SDK or later.
 dotnet run --project src/CoderPatros.Jss.Web
 ```
 
+### With Docker
+
+Build and run using the provided script:
+
+```sh
+./src/CoderPatros.Jss.Web/docker-run.sh
+```
+
+This builds the Docker image and runs the web tool on `http://localhost:8080`.
+
+Or build and run manually from the repository root:
+
+```sh
+docker build -f src/CoderPatros.Jss.Web/Dockerfile -t coderpatros-jss-web .
+docker run --rm -p 8080:80 coderpatros-jss-web
+```
+
 ## Pages
 
 ### Generate Key

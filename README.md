@@ -94,6 +94,12 @@ Run the API server from source:
 dotnet run --project src/CoderPatros.Jss.Api
 ```
 
+Or with Docker:
+
+```sh
+./src/CoderPatros.Jss.Api/docker-run.sh
+```
+
 Generate keys, sign, and verify with curl:
 
 ```sh
@@ -122,6 +128,12 @@ Run the web tool locally:
 
 ```sh
 dotnet run --project src/CoderPatros.Jss.Web
+```
+
+Or with Docker:
+
+```sh
+./src/CoderPatros.Jss.Web/docker-run.sh
 ```
 
 Open the app in your browser to generate keys, sign documents, and verify signatures. All cryptographic operations run entirely in the browser — your keys and documents never leave your machine. See the [Web README](src/CoderPatros.Jss.Web/README.md) for more details.
