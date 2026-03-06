@@ -3,6 +3,7 @@
 
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace CoderPatros.Jss.Keys;
 
@@ -20,8 +21,8 @@ public sealed class VerificationKey : IDisposable
         KeyMaterial = keyMaterial;
     }
 
-    public static VerificationKey FromECDsa(ECDsa key) => new(key);
-    public static VerificationKey FromRsa(RSA key) => new(key);
+    public static VerificationKey FromECDsa(ECPublicKeyParameters key) => new(key);
+    public static VerificationKey FromRsa(RsaKeyParameters key) => new(key);
     public static VerificationKey FromEdDsa(byte[] publicKey, string curve) =>
         new(new EdDsaKeyMaterial(publicKey, curve));
     public static VerificationKey FromCertificate(X509Certificate2 cert) =>
@@ -33,12 +34,6 @@ public sealed class VerificationKey : IDisposable
 
         switch (KeyMaterial)
         {
-            case ECDsa ecdsa:
-                ecdsa.Dispose();
-                break;
-            case RSA rsa:
-                rsa.Dispose();
-                break;
             case EdDsaKeyMaterial edDsa:
                 CryptographicOperations.ZeroMemory(edDsa.PublicKey);
                 break;

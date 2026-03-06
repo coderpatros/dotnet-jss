@@ -2,6 +2,7 @@
 // Copyright (c) Patrick Dwyer. All Rights Reserved.
 
 using System.Security.Cryptography;
+using Org.BouncyCastle.Crypto.Parameters;
 
 namespace CoderPatros.Jss.Keys;
 
@@ -20,8 +21,8 @@ public sealed class SigningKey : IDisposable
         KeyMaterial = keyMaterial;
     }
 
-    public static SigningKey FromECDsa(ECDsa key) => new(key);
-    public static SigningKey FromRsa(RSA key) => new(key);
+    public static SigningKey FromECDsa(ECPrivateKeyParameters key) => new(key);
+    public static SigningKey FromRsa(RsaPrivateCrtKeyParameters key) => new(key);
     public static SigningKey FromEdDsa(byte[] privateKey, string curve) =>
         new(new EdDsaKeyMaterial(privateKey, curve));
 
@@ -31,12 +32,6 @@ public sealed class SigningKey : IDisposable
 
         switch (KeyMaterial)
         {
-            case ECDsa ecdsa:
-                ecdsa.Dispose();
-                break;
-            case RSA rsa:
-                rsa.Dispose();
-                break;
             case EdDsaKeyMaterial edDsa:
                 CryptographicOperations.ZeroMemory(edDsa.PrivateKey);
                 break;
