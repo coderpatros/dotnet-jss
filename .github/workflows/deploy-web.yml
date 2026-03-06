@@ -1,0 +1,49 @@
+name: Deploy Web Tool to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish Blazor WASM
+        run: dotnet publish src/CoderPatros.Jss.Web -c Release -o dist
+
+      - name: Prepare for GitHub Pages
+        run: |
+          sed -i 's|<base href="/" />|<base href="/dotnet-jss/" />|' dist/wwwroot/index.html
+          cp dist/wwwroot/index.html dist/wwwroot/404.html
+          touch dist/wwwroot/.nojekyll
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/wwwroot
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
